@@ -11,13 +11,31 @@
  * @method   printDetails
  */
 
-  /**
-   * Returns a string of all of the spell's details.
-   * The format doesn't matter, as long as it contains the spell name, cost, and description.
-   *
-   * @name getDetails
-   * @return {string} details containing all of the spells information.
-   */
+ function Spell(name, cost, description){
+  this.name = name;
+  this.cost = cost;
+  this.description = description;
+
+  this.getDetails = function(){
+    return  this.name + " " + this.cost + " " + this.description;
+  };
+ }
+
+
+/**
+* Returns a string of all of the spell's details.
+* The format doesn't matter, as long as it contains the spell name, cost, and description.
+*
+* @name getDetails
+* @return {string} details containing all of the spells information.
+*/
+
+function DamageSpell(name, cost, damage, description){
+  Spell.call(this, name, cost, description);
+  this.damage = damage;
+}
+
+DamageSpell.prototype = Object.create(Spell.prototype);
 
 /**
  * A spell that deals damage.
@@ -43,6 +61,67 @@
  * @property {number} damage
  * @property {string} description
  */
+
+function Spellcaster (name, health, mana) {
+  this.name = name;
+  this.health = health;
+  this.mana = mana;
+  this.isAlive = true;
+
+  this.inflictDamage = function(damage){
+    if(this.health - damage <= 0){
+      this.health = 0;
+      this.isAlive = false;
+    }
+    else{
+      this.health -= damage;
+    }
+
+  };
+
+  this.spendMana = function(cost){
+
+    if (this.mana >= cost){
+      this.mana -= cost;
+      return true;
+    }
+    else {
+      return false;
+    }
+  };
+
+  this.invoke = function(spell, target){
+
+    if (spell instanceof DamageSpell){
+      if(target === undefined || target === null){
+          return false;
+      }
+
+      if(this.spendMana(spell.cost)){
+        target.inflictDamage(spell.damage);
+        return true;
+      }
+
+      else{
+        return false;
+      }
+    }
+
+    else if (spell instanceof Spell){
+      return this.spendMana(spell.cost);
+    }
+
+    return false;
+  };
+}
+
+var loren = new Spellcaster('Loren', 300, 125);
+var gust = new Spell('Gust', 124, 'Creates a gentle breeze.');
+var forcePulse = new DamageSpell('Force Pulse', Math.floor(loren.mana/2), Math.floor(loren.mana/10));
+
+console.log(loren.invoke(forcePulse, loren));
+console.log(loren.mana);
+console.log(loren.health);
 
 /**
  * Now that you've created some spells, let's create
